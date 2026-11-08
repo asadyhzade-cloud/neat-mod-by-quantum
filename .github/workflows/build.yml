@@ -1,0 +1,35 @@
+name: Build Neat Mod
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: 21
+
+      - name: Extract and build
+        run: |
+          ZIP=$(find . -maxdepth 1 -iname '*.zip' | head -n 1)
+          test -n "$ZIP"
+          mkdir source
+          unzip "$ZIP" -d source
+          PROJECT=$(find source -name gradlew -type f | head -n 1)
+          cd "$(dirname "$PROJECT")"
+          chmod +x gradlew
+          ./gradlew build
+
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: Neat-Mod-JAR
+          path: source/**/build/libs/*.jar
